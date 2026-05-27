@@ -1,0 +1,364 @@
+<!--
+  ============================================================
+  VLM Poliplast — Widget Chatbot Flotant
+  ============================================================
+  INSTRUCȚIUNI DE INSTALARE PE WORDPRESS
+  ─────────────────────────────────────
+  Opțiunea 1 (Recomandat — Plugin):
+    1. Instalați pluginul "Insert Headers and Footers" (WPCode)
+    2. Mergeți la WPCode → Add Snippet → Add Your Custom Code
+    3. Selectați "HTML Snippet"
+    4. Copiați tot codul de mai jos și salvați
+    5. Setați "Location" → Footer
+
+  Opțiunea 2 (Theme):
+    Copiați codul în fișierul footer.php al temei,
+    înainte de </body>
+
+  IMPORTANT: Înlocuiți YOUR_API_KEY_HERE cu cheia
+  Anthropic reală. Cheia se obține de la:
+  https://console.anthropic.com/settings/keys
+
+  ATENȚIE SECURITATE: pentru producție, apelurile API
+  trebuie făcute printr-un backend propriu (PHP/Node)
+  pentru a nu expune cheia în codul sursă public.
+  ============================================================
+-->
+
+<style>
+#vlm-chat-wrap * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, 'Segoe UI', sans-serif; }
+
+#vlm-fab {
+  position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: #185FA5; color: #fff; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(24,95,165,0.45);
+  transition: transform .18s, background .15s;
+}
+#vlm-fab:hover { background: #0C447C; transform: scale(1.07); }
+#vlm-fab svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#vlm-fab .vlm-close { display: none; }
+#vlm-fab.open .vlm-open { display: none; }
+#vlm-fab.open .vlm-close { display: block; }
+
+#vlm-badge {
+  position: fixed; bottom: 70px; right: 24px; z-index: 99998;
+  background: #E24B4A; color: #fff;
+  font-size: 11px; font-weight: 600;
+  width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(226,75,74,.5);
+  transition: opacity .2s;
+}
+
+#vlm-panel {
+  position: fixed; bottom: 96px; right: 24px; z-index: 99998;
+  width: 360px; height: 520px;
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column; overflow: hidden;
+  transform: scale(.9) translateY(12px); opacity: 0;
+  pointer-events: none;
+  transition: transform .22s cubic-bezier(.34,1.3,.64,1), opacity .18s;
+}
+#vlm-panel.open { transform: none; opacity: 1; pointer-events: auto; }
+
+#vlm-hdr {
+  background: #185FA5; padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+#vlm-hdr-ico {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+#vlm-hdr-ico svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; }
+#vlm-hdr-txt h3 { font-size: 13px; font-weight: 600; color: #fff; }
+#vlm-hdr-txt p  { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 1px; }
+#vlm-dot { width: 7px; height: 7px; border-radius: 50%; background: #B5D4F4; margin-left: auto; flex-shrink: 0; }
+
+#vlm-msgs {
+  flex: 1; overflow-y: auto; padding: 12px 12px 6px;
+  display: flex; flex-direction: column; gap: 9px;
+  background: #f4f6f8;
+}
+#vlm-msgs::-webkit-scrollbar { width: 3px; }
+#vlm-msgs::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+.vlm-m {
+  max-width: 85%; font-size: 13px; line-height: 1.52;
+  padding: 8px 12px; border-radius: 13px;
+  animation: vlmfu .16s ease;
+}
+@keyframes vlmfu { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+.vlm-m.bot {
+  background: #fff; color: #1a1a1a;
+  border: 0.5px solid #e0e4ea;
+  align-self: flex-start; border-bottom-left-radius: 3px;
+}
+.vlm-m.usr {
+  background: #185FA5; color: #fff;
+  align-self: flex-end; border-bottom-right-radius: 3px;
+}
+.vlm-m.bot ul { padding-left: 15px; margin-top: 4px; }
+.vlm-m.bot li { margin-bottom: 2px; }
+.vlm-m.bot strong { font-weight: 600; }
+.vlm-m.bot p { margin-bottom: 4px; }
+.vlm-m.bot p:last-child { margin-bottom: 0; }
+
+.vlm-m.typing { background: #fff; border: 0.5px solid #e0e4ea; align-self: flex-start; }
+.vlm-dots span {
+  display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: #185FA5; margin: 0 2px;
+  animation: vlmb 1.1s infinite;
+}
+.vlm-dots span:nth-child(2){animation-delay:.2s}
+.vlm-dots span:nth-child(3){animation-delay:.4s}
+@keyframes vlmb { 0%,60%,100%{transform:none} 30%{transform:translateY(-4px)} }
+
+#vlm-quick {
+  padding: 6px 12px 3px; display: flex; gap: 5px; flex-wrap: wrap;
+  background: #f4f6f8; flex-shrink: 0;
+}
+.vlm-qb {
+  font-size: 11px; padding: 4px 9px; border-radius: 18px;
+  border: 1px solid #185FA5; background: transparent; color: #185FA5;
+  cursor: pointer; white-space: nowrap; transition: all .13s;
+}
+.vlm-qb:hover { background: #185FA5; color: #fff; }
+
+#vlm-foot {
+  padding: 8px 10px; border-top: 1px solid #e8ecf0;
+  background: #fff; display: flex; gap: 7px; align-items: flex-end; flex-shrink: 0;
+}
+#vlm-inp {
+  flex: 1; font-size: 13px; padding: 7px 11px;
+  border: 1px solid #d0d8e4; border-radius: 18px;
+  background: #f7f9fb; color: #1a1a1a; outline: none;
+  resize: none; max-height: 80px; line-height: 1.4;
+  transition: border-color .13s;
+}
+#vlm-inp:focus { border-color: #185FA5; background: #fff; }
+#vlm-inp::placeholder { color: #9aa3ad; }
+#vlm-send {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #185FA5; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background .13s, transform .1s;
+}
+#vlm-send:hover { background: #0C447C; }
+#vlm-send:active { transform: scale(.95); }
+#vlm-send:disabled { background: #c8d0da; cursor: not-allowed; }
+#vlm-send svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+#vlm-brand {
+  text-align: center; font-size: 10px; color: #aab0b8;
+  padding: 3px 0 6px; background: #fff; flex-shrink: 0;
+}
+</style>
+
+<div id="vlm-chat-wrap">
+
+  <!-- Notification badge -->
+  <div id="vlm-badge">1</div>
+
+  <!-- Floating button -->
+  <button id="vlm-fab" onclick="vlmToggle()" aria-label="Deschide chat asistent VLM Poliplast">
+    <!-- Chat icon -->
+    <svg class="vlm-open" viewBox="0 0 24 24">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <!-- Close icon -->
+    <svg class="vlm-close" viewBox="0 0 24 24">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- Chat panel -->
+  <div id="vlm-panel" role="dialog" aria-label="Asistent virtual VLM Poliplast">
+
+    <div id="vlm-hdr">
+      <div id="vlm-hdr-ico">
+        <svg viewBox="0 0 24 24">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <polyline points="8,21 12,17 16,21"/>
+        </svg>
+      </div>
+      <div id="vlm-hdr-txt">
+        <h3>Asistent VLM Poliplast</h3>
+        <p>Ambalaje flexibile · Online</p>
+      </div>
+      <div id="vlm-dot"></div>
+    </div>
+
+    <div id="vlm-msgs"></div>
+
+    <div id="vlm-quick">
+      <button class="vlm-qb" onclick="vlmSQ('Ce tipuri de pungi produceți?')">Tipuri pungi</button>
+      <button class="vlm-qb" onclick="vlmSQ('Ce este EcoMonoFilm® / PPWR?')">EcoMonoFilm®</button>
+      <button class="vlm-qb" onclick="vlmSQ('Vreau să cer o ofertă')">Ofertă</button>
+      <button class="vlm-qb" onclick="vlmSQ('Contact și date firmă')">Contact</button>
+    </div>
+
+    <div id="vlm-foot">
+      <textarea id="vlm-inp" rows="1" placeholder="Scrieți mesajul dvs..."
+        onkeydown="vlmKey(event)" oninput="vlmAR(this)"></textarea>
+      <button id="vlm-send" onclick="vlmSend()" aria-label="Trimite mesaj" title="Trimite">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+      </button>
+    </div>
+
+    <div id="vlm-brand">Alimentat de Claude AI · Anthropic</div>
+  </div>
+</div>
+
+<script>
+(function() {
+
+/* ── CONFIGURARE ─────────────────────────────────── */
+const API_KEY   = 'YOUR_API_KEY_HERE';   // ← înlocuiți cu cheia Anthropic
+const MODEL     = 'claude-sonnet-4-20250514';
+const MAX_TOKENS = 900;
+/* ─────────────────────────────────────────────────── */
+
+const SYS = `Ești asistentul virtual oficial al companiei VLM Poliplast SRL — producător român de ambalaje flexibile din plastic, cu sediul în București, activ din 2008. Răspunzi în română, cu un ton profesionist, tehnic și concis.
+
+DESPRE COMPANIE:
+- Producător român de ambalaje flexibile din plastic
+- Sediu: Bulevardul Theodor Pallady 287, Sector 3, București
+- Telefon: +40 744 624 924 | Email: office@vlmpoliplast.ro
+- Site: https://vlmpoliplast.ro
+- Livrare: România și Uniunea Europeană
+- Procese: laminare solventless, imprimare flexografică până la 8 culori, conversie completă de la folie la pungă finită
+- Răspuns ofertă / mostră: 24–48 ore
+
+PRODUSE — PUNGI:
+Pungi Pouch: Stand-Up Doypack, Stand-Up Kraft cu fereastră și fermoar, Quadseal (sudură 4 laturi), cu fermoar (ziplock), Pouch PE/PE reciclabile (EcoMonoFilm®), Flowpack, de vid.
+Pungi universale: clapetă adezivă, BOPP/laminate, LDPE alimentar, HDPE industrial, sacose personalizate.
+Altele: pungi curierat / plicuri e-commerce.
+
+PRODUSE — FOLII:
+Folie multistrat laminată (flow-pack, VFFS, HFFS), monomaterial (PP/PE reciclabile), polietilenă, polipropilenă BOPP, CPP (Cast), macroperforată (legume/fructe), cu barieră (OTR, WVTR).
+
+MATERIALE: BOPP, CPP, LDPE/HDPE, PET, PP monomaterial, PE monomaterial, MDO-PE, laminate multistrat cu barieră.
+Brand propriu EcoMonoFilm® — folii și pungi monomaterial PE/PP reciclabile, conforme PPWR (UE) 2025/40.
+
+INDUSTRII: pet food, suplimente alimentare, cafea/ceai, legume/fructe, semințe/gazon, gheață/congelate, panificație/patiserie, automotive, e-commerce, cosmetice, chimie industrială.
+
+SUSTENABILITATE: EcoMonoFilm® aliniat PPWR 2025/40; laminare solventless; analize migrare globală (IBA București, ISO 17025); documentație PPWR (DoC, PFAS, RecyClass); Ghid PPWR 2026 PDF gratuit pe site.
+
+CERTIFICĂRI: ISO 9001, ISO 14001, ISO 22000, ISO 45001.
+
+FLUX OFERTĂ: Când cineva solicită ofertă, colectează: tipul ambalajului, produsul ambalat, cantitate, dimensiuni (mm), cerințe speciale (culori imprimare, fermoar, barieră etc.), date de contact. Spune că oferta vine în 24-48 ore. Nu inventa prețuri.
+
+Răspunde concis, max 4-5 propoziții sau liste scurte. Dacă nu știi, trimite la office@vlmpoliplast.ro sau +40 744 624 924.`;
+
+const hist = [];
+let busy = false;
+let opened = false;
+
+function vlmToggle() {
+  opened = !opened;
+  document.getElementById('vlm-fab').classList.toggle('open', opened);
+  document.getElementById('vlm-panel').classList.toggle('open', opened);
+  document.getElementById('vlm-badge').style.display = 'none';
+  if (opened) {
+    setTimeout(() => document.getElementById('vlm-inp').focus(), 250);
+  }
+}
+window.vlmToggle = vlmToggle;
+
+function vlmFmt(t) {
+  return t
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^[-•]\s(.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, s=>`<ul>${s}</ul>`)
+    .split(/\n{2,}/).map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+}
+
+function vlmEsc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function vlmAdd(role, txt) {
+  const c = document.getElementById('vlm-msgs');
+  const d = document.createElement('div');
+  d.className = `vlm-m ${role==='user'?'usr':'bot'}`;
+  d.innerHTML = role==='user' ? vlmEsc(txt) : vlmFmt(txt);
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+function vlmDots(show) {
+  if (show) {
+    const c = document.getElementById('vlm-msgs');
+    const d = document.createElement('div');
+    d.className='vlm-m typing'; d.id='vlm-td';
+    d.innerHTML='<div class="vlm-dots"><span></span><span></span><span></span></div>';
+    c.appendChild(d); c.scrollTop=c.scrollHeight;
+  } else {
+    const t=document.getElementById('vlm-td'); if(t)t.remove();
+  }
+}
+
+async function vlmCall(msg) {
+  busy=true; document.getElementById('vlm-send').disabled=true;
+  hist.push({role:'user',content:msg});
+  vlmDots(true);
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': API_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model:MODEL, max_tokens:MAX_TOKENS, system:SYS, messages:hist })
+    });
+    const d = await r.json();
+    vlmDots(false);
+    const reply = d.content?.[0]?.text || 'A apărut o eroare. Contactați-ne la office@vlmpoliplast.ro sau +40 744 624 924.';
+    hist.push({role:'assistant',content:reply});
+    vlmAdd('assistant', reply);
+  } catch(e) {
+    vlmDots(false);
+    const err = 'Eroare de conexiune. Contactați-ne la office@vlmpoliplast.ro sau +40 744 624 924.';
+    hist.push({role:'assistant',content:err});
+    vlmAdd('assistant', err);
+  }
+  busy=false; document.getElementById('vlm-send').disabled=false;
+}
+
+function vlmSend() {
+  const el=document.getElementById('vlm-inp');
+  const t=el.value.trim();
+  if(!t||busy)return;
+  el.value=''; el.style.height='auto';
+  vlmAdd('user',t); vlmCall(t);
+}
+window.vlmSend=vlmSend;
+
+function vlmSQ(t){ if(busy)return; vlmToggle(); setTimeout(()=>{ vlmAdd('user',t); vlmCall(t); },300); }
+window.vlmSQ=vlmSQ;
+
+function vlmKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();vlmSend();} }
+window.vlmKey=vlmKey;
+
+function vlmAR(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,80)+'px'; }
+window.vlmAR=vlmAR;
+
+// Mesaj de bun venit la încărcare
+const welcome = `Bună ziua! Sunt asistentul virtual **VLM Poliplast** — producător român de ambalaje flexibile din plastic.\n\nVă pot ajuta cu informații despre **pungi personalizate**, **folii pentru ambalare automată**, gama **EcoMonoFilm®** (reciclabil / PPWR), sau pot prelua o **cerere de ofertă**.\n\nCu ce vă putem fi de folos?`;
+hist.push({role:'assistant', content:welcome});
+vlmAdd('assistant', welcome);
+
+// Afișează badge după 3 secunde dacă panelul nu e deschis
+setTimeout(()=>{
+  if(!opened) document.getElementById('vlm-badge').style.display='flex';
+}, 3000);
+
+})();
+</script>

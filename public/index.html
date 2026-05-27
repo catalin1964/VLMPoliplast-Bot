@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VLM Poliplast SRL – Ambalaje Flexibile din Plastic</title>
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f9;
+      color: #1a2a3a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ─── Top Bar ─── */
+    header {
+      background: #185FA5;
+      color: #fff;
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px; letter-spacing: -0.5px;
+    }
+    .logo-text { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
+    .logo-sub { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+    nav a {
+      color: rgba(255,255,255,0.88);
+      text-decoration: none;
+      font-size: 13.5px;
+      margin-left: 24px;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: #fff; }
+
+    /* ─── Hero ─── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px 120px;
+      gap: 32px;
+    }
+
+    .hero-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 48px 56px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 32px rgba(24,95,165,0.10);
+      border: 1px solid #e0eaf5;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: #e8f0fb;
+      color: #185FA5;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+    .hero-card h1 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #185FA5;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+    .hero-card p {
+      color: #5a6a7a;
+      font-size: 15.5px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #185FA5;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 26px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 14.5px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .hero-cta:hover { background: #1350880; transform: translateY(-1px); }
+
+    /* ─── Info Chips ─── */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      max-width: 640px;
+    }
+    .chip {
+      background: #fff;
+      border: 1px solid #d0dff0;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 13px;
+      color: #2c4a70;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .chip span { font-size: 15px; }
+
+    /* ─── Footer ─── */
+    footer {
+      background: #0f3d70;
+      color: rgba(255,255,255,0.65);
+      text-align: center;
+      font-size: 12.5px;
+      padding: 16px;
+    }
+    footer a { color: rgba(255,255,255,0.85); text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    /* ════════════════════════════════════
+       CHATBOT WIDGET
+    ════════════════════════════════════ */
+
+    /* FAB Button */
+    #chat-fab {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: #185FA5;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(24,95,165,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #chat-fab:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 28px rgba(24,95,165,0.55);
+    }
+    #chat-fab svg { width: 26px; height: 26px; fill: #fff; }
+
+    /* Badge */
+    #chat-badge {
+      position: absolute;
+      top: -3px; right: -3px;
+      background: #e53935;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #fff;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    #chat-badge.hidden { opacity: 0; transform: scale(0); pointer-events: none; }
+
+    /* Chat Panel */
+    #chat-panel {
+      position: fixed;
+      bottom: 100px; right: 28px;
+      width: 360px;
+      height: 520px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.18);
+      display: flex; flex-direction: column;
+      z-index: 999;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(20px) scale(0.96);
+      pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+    #chat-panel.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+
+    /* Panel Header */
+    .chat-header {
+      background: linear-gradient(135deg, #185FA5 0%, #1a6fc4 100%);
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .chat-avatar {
+      width: 38px; height: 38px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .chat-avatar svg { width: 20px; height: 20px; fill: #fff; }
+    .chat-header-info { flex: 1; }
+    .chat-header-name { color: #fff; font-weight: 700; font-size: 14.5px; }
+    .chat-header-status {
+      display: flex; align-items: center; gap: 5px;
+      color: rgba(255,255,255,0.8); font-size: 11.5px; margin-top: 2px;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      background: #4cdf80;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .chat-close {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.7);
+      padding: 4px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, color 0.2s;
+    }
+    .chat-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .chat-close svg { width: 18px; height: 18px; fill: currentColor; }
+
+    /* Quick Buttons */
+    .quick-btns {
+      padding: 10px 12px 6px;
+      display: flex; flex-wrap: wrap; gap: 6px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #f0f4f9;
+    }
+    .quick-btn {
+      background: #f0f4f9;
+      border: 1px solid #d8e6f5;
+      border-radius: 16px;
+      padding: 5px 11px;
+      font-size: 12px;
+      color: #185FA5;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s;
+      white-space: nowrap;
+    }
+    .quick-btn:hover { background: #d8e6f5; border-color: #185FA5; }
+
+    /* Messages */
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 14px 8px;
+      display: flex; flex-direction: column; gap: 10px;
+      scroll-behavior: smooth;
+    }
+    #chat-messages::-webkit-scrollbar { width: 4px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: #c8d8ea; border-radius: 4px; }
+
+    .msg {
+      display: flex;
+      gap: 7px;
+      align-items: flex-end;
+      animation: msg-in 0.22s ease;
+    }
+    @keyframes msg-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+    }
+    .msg.bot .msg-avatar { background: #185FA5; color: #fff; }
+    .msg.user .msg-avatar { background: #e0eaf5; color: #185FA5; }
+
+    .msg-bubble {
+      max-width: 78%;
+      padding: 9px 13px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+    .msg.bot .msg-bubble {
+      background: #f4f8fd;
+      color: #1a2a3a;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #e0eaf5;
+    }
+    .msg.user .msg-bubble {
+      background: #185FA5;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Typing dots */
+    .typing-dots {
+      display: flex; gap: 4px;
+      padding: 4px 2px;
+    }
+    .typing-dots span {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #185FA5;
+      animation: dot-bounce 1.2s infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dot-bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+      40% { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* Input Area */
+    .chat-input-area {
+      padding: 10px 12px 12px;
+      border-top: 1px solid #eef2f8;
+      display: flex; gap: 8px; align-items: flex-end;
+      flex-shrink: 0;
+    }
+    #chat-input {
+      flex: 1;
+      border: 1.5px solid #d0dff0;
+      border-radius: 12px;
+      padding: 9px 13px;
+      font-size: 13.5px;
+      font-family: inherit;
+      resize: none;
+      max-height: 88px;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.45;
+    }
+    #chat-input:focus { border-color: #185FA5; }
+    #chat-input::placeholder { color: #a0aab8; }
+
+    #chat-send {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      background: #185FA5;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.15s;
+      flex-shrink: 0;
+    }
+    #chat-send:hover { background: #134d8a; transform: scale(1.05); }
+    #chat-send:disabled { background: #b0c4de; cursor: not-allowed; transform: none; }
+    #chat-send svg { width: 17px; height: 17px; fill: #fff; }
+
+    /* Responsive */
+    @media (max-width: 420px) {
+      #chat-panel { width: calc(100vw - 20px); right: 10px; bottom: 90px; height: 480px; }
+      #chat-fab { bottom: 18px; right: 18px; }
+      .hero-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<header>
+  <a href="https://vlmpoliplast.ro" class="logo" target="_blank" rel="noopener">
+    <div class="logo-icon">VLM</div>
+    <div>
+      <div class="logo-text">VLM Poliplast</div>
+      <div class="logo-sub">Ambalaje flexibile din plastic</div>
+    </div>
+  </a>
+  <nav>
+    <a href="https://vlmpoliplast.ro" target="_blank" rel="noopener">Site oficial</a>
+    <a href="mailto:office@vlmpoliplast.ro">Contact</a>
+    <a href="tel:+40744624924">+40 744 624 924</a>
+  </nav>
+</header>
+
+<!-- ─── Main ─── -->
+<main>
+  <div class="hero-card">
+    <div class="hero-badge">🤖 Asistent Virtual AI · Disponibil 24/7</div>
+    <h1>Bine ați venit la VLM Poliplast</h1>
+    <p>
+      Asistentul nostru virtual vă stă la dispoziție non-stop pentru informații despre
+      produse, materiale, certificări și oferte personalizate de ambalaje flexibile.
+    </p>
+    <a href="https://vlmpoliplast.ro" class="hero-cta" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2
+          15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      </svg>
+      Vizitați vlmpoliplast.ro
+    </a>
+  </div>
+
+  <div class="chips">
+    <div class="chip"><span>🏭</span> Producător din 2008 — 18 ani experiență</div>
+    <div class="chip"><span>📦</span> Pungi pouch, doypack, flowpack, vid</div>
+    <div class="chip"><span>🌿</span> EcoMonoFilm® – PPWR 2025/40</div>
+    <div class="chip"><span>✅</span> ISO 9001 · 14001 · 22000 · 45001</div>
+    <div class="chip"><span>🚚</span> Livrare România & UE</div>
+    <div class="chip"><span>⚡</span> Ofertă în 24–48 ore</div>
+  </div>
+</main>
+
+<!-- ─── Footer ─── -->
+<footer>
+  © 2024 VLM Poliplast SRL · Bd. Theodor Pallady 287, Sector 3, București ·
+  <a href="mailto:office@vlmpoliplast.ro">office@vlmpoliplast.ro</a> ·
+  <a href="tel:+40744624924">+40 744 624 924</a>
+</footer>
+
+<!-- ════════════════════════════════════
+     CHATBOT WIDGET
+════════════════════════════════════ -->
+
+<!-- FAB -->
+<button id="chat-fab" aria-label="Deschide chatbot" title="Asistent VLM Poliplast">
+  <div id="chat-badge">1</div>
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9
+      2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+  </svg>
+</button>
+
+<!-- Chat Panel -->
+<div id="chat-panel" role="dialog" aria-label="Asistent VLM Poliplast">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-avatar">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
+        10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10
+        14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    </div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">Asistent VLM Poliplast</div>
+      <div class="chat-header-status">
+        <div class="status-dot"></div>
+        Online · Răspund imediat
+      </div>
+    </div>
+    <button class="chat-close" id="chat-close" aria-label="Închide">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5
+        6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+  </div>
+
+  <!-- Quick Buttons -->
+  <div class="quick-btns" id="quick-btns">
+    <button class="quick-btn" data-q="Ce tipuri de pungi produceți?">Tipuri de pungi</button>
+    <button class="quick-btn" data-q="Ce folii FFS / flow-pack oferiți?">Folii FFS</button>
+    <button class="quick-btn" data-q="Ce este EcoMonoFilm® și cum respectă PPWR?">EcoMonoFilm® / PPWR</button>
+    <button class="quick-btn" data-q="Vreau să solicit o ofertă de preț.">Cerere ofertă</button>
+  </div>
+
+  <!-- Messages -->
+  <div id="chat-messages" aria-live="polite"></div>
+
+  <!-- Input -->
+  <div class="chat-input-area">
+    <textarea
+      id="chat-input"
+      rows="1"
+      placeholder="Scrieți întrebarea dvs..."
+      aria-label="Mesaj"
+    ></textarea>
+    <button id="chat-send" aria-label="Trimite" title="Trimite (Enter)">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ── State ── */
+  const messages = [];   // { role, content }[]
+  let isOpen = false;
+  let isTyping = false;
+  let welcomeSent = false;
+
+  /* ── DOM refs ── */
+  const fab    = document.getElementById('chat-fab');
+  const badge  = document.getElementById('chat-badge');
+  const panel  = document.getElementById('chat-panel');
+  const closeBtn = document.getElementById('chat-close');
+  const msgArea  = document.getElementById('chat-messages');
+  const input    = document.getElementById('chat-input');
+  const sendBtn  = document.getElementById('chat-send');
+  const qBtns    = document.querySelectorAll('.quick-btn');
+
+  /* ── Toggle panel ── */
+  function openPanel() {
+    isOpen = true;
+    panel.classList.add('open');
+    badge.classList.add('hidden');
+    input.focus();
+    if (!welcomeSent) { sendWelcome(); welcomeSent = true; }
+  }
+  function closePanel() {
+    isOpen = false;
+    panel.classList.remove('open');
+  }
+
+  fab.addEventListener('click', () => isOpen ? closePanel() : openPanel());
+  closeBtn.addEventListener('click', closePanel);
+
+  /* ── Welcome message ── */
+  function sendWelcome() {
+    appendMessage('bot',
+      'Bună ziua! 👋 Sunt asistentul virtual al <strong>VLM Poliplast SRL</strong>.<br>' +
+      'Vă pot ajuta cu informații despre ambalaje flexibile, materiale, certificări sau o ofertă personalizată.<br>' +
+      'Cum vă pot ajuta astăzi?'
+    );
+  }
+
+  /* ── Append message bubble ── */
+  function appendMessage(role, html, isLoading = false) {
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${role}`;
+
+    const avatarEl = document.createElement('div');
+    avatarEl.className = 'msg-avatar';
+    avatarEl.textContent = role === 'bot' ? 'V' : 'Tu';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble';
+
+    if (isLoading) {
+      bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+      wrap.id = 'typing-indicator';
+    } else {
+      bubble.innerHTML = html;
+    }
+
+    wrap.appendChild(avatarEl);
+    wrap.appendChild(bubble);
+    msgArea.appendChild(wrap);
+    msgArea.scrollTop = msgArea.scrollHeight;
+    return wrap;
+  }
+
+  /* ── Remove typing indicator ── */
+  function removeTyping() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  /* ── Auto-resize textarea ── */
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 88) + 'px';
+  });
+
+  /* ── Send on Enter (not Shift+Enter) ── */
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+  sendBtn.addEventListener('click', sendMessage);
+
+  /* ── Quick buttons ── */
+  qBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const q = btn.dataset.q;
+      input.value = q;
+      sendMessage();
+    });
+  });
+
+  /* ── Core send ── */
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text || isTyping) return;
+
+    // Render user bubble
+    appendMessage('user', escHtml(text));
+    messages.push({ role: 'user', content: text });
+
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+    isTyping = true;
+
+    // Typing indicator
+    appendMessage('bot', '', true);
+    msgArea.scrollTop = msgArea.scrollHeight;
+
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages }),
+      });
+
+      const data = await res.json();
+      removeTyping();
+
+      const reply = data.reply || 'Îmi pare rău, a apărut o eroare.';
+      appendMessage('bot', formatReply(reply));
+      messages.push({ role: 'assistant', content: reply });
+
+    } catch (err) {
+      removeTyping();
+      appendMessage('bot',
+        'Eroare de conexiune. Vă rugăm contactați <a href="mailto:office@vlmpoliplast.ro" ' +
+        'style="color:#185FA5">office@vlmpoliplast.ro</a>.'
+      );
+    } finally {
+      sendBtn.disabled = false;
+      isTyping = false;
+      input.focus();
+    }
+  }
+
+  /* ── Helpers ── */
+  function escHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function formatReply(text) {
+    // Convert markdown-like syntax to HTML
+    return escHtml(text)
+      // Bold **text**
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // Bullet lists
+      .replace(/^[-•]\s(.+)/gm, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul style="padding-left:18px;margin:6px 0">$1</ul>')
+      // Line breaks
+      .replace(/\n/g, '<br>');
+  }
+
+  /* ── Keyboard: Esc closes panel ── */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) closePanel();
+  });
+
+})();
+</script>
+</body>
+</html>
