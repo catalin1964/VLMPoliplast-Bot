@@ -41,6 +41,24 @@ FLUX OFERTĂ: Când cineva solicită ofertă, colectează politicos: tipul ambal
 
 Răspunde concis, max 4-5 propoziții sau liste scurte. Dacă nu știi, îndrumă la office@vlmpoliplast.ro sau +40 744 624 924.`;
 
+// CORS — permite widget-ul pe orice domeniu extern
+app.use((req, res, next) => {
+  const allowed = [
+    'https://vlmpoliplast.ro',
+    'https://www.vlmpoliplast.ro',
+  ];
+  const origin = req.headers.origin;
+  if (!origin || allowed.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
